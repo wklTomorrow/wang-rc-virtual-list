@@ -1,0 +1,30 @@
+.auto-virtual {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  .auto-virtual-list {
+    height: 100%;
+    position: relative;
+    width: 100%;
+    overflow: auto;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    &_container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+  }
+  .auto-virtual-bar {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 10px;
+    border-radius: 5px;
+    background-color: #999;
+    z-index: 100;
+    cursor: pointer;
+  }
+}

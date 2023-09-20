@@ -1,0 +1,47 @@
+.wrap-virtual {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  .virtual {
+    &-bg {
+      width: 100%;
+    }
+    &-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      outline: 1px solid seagreen;
+      position: relative;
+      overflow: auto;
+    }
+    &-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+    &-bar {
+      position: absolute;
+      right: 0;
+      width: 10px;
+      background-color: #999;
+      border-radius: 5px;
+      z-index: 999;
+      cursor: pointer;
+    }
+    &-inner {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
