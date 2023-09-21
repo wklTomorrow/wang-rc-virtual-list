@@ -14,6 +14,7 @@ function WrapRevertAutoSizeVirtualList<T>(
 
   const [virtual, setVirtual] = useState<boolean>(false);
   const normalEl = useRef<HTMLDivElement>(null);
+  const wrapEl = useRef<HTMLDivElement>(null);
 
   const viewCount = Math.min(Math.floor(height / minSize), list.length);
 
@@ -27,9 +28,10 @@ function WrapRevertAutoSizeVirtualList<T>(
 
   useEffect(() => {
     if (!virtual && size > 0) {
-      const { scrollHeight, clientHeight } =
+      const { clientHeight: contentHeight } =
         normalEl?.current as HTMLDivElement;
-      if (scrollHeight > clientHeight) {
+      const { clientHeight } = wrapEl?.current as HTMLDivElement;
+      if (contentHeight >= clientHeight) {
         setVirtual(true);
       }
     }
@@ -40,16 +42,18 @@ function WrapRevertAutoSizeVirtualList<T>(
       {virtual ? (
         <RevertAutoSizeVirtualList {...props} />
       ) : (
-        <div className="normal-list" ref={normalEl}>
-          {list.length > 0 &&
-            list
-              .slice()
-              .reverse()
-              .map((item) => (
-                <div key={item[itemKey as keyof T] as unknown as string}>
-                  {renderItem(item)}
-                </div>
-              ))}
+        <div className="normal-list" ref={wrapEl}>
+          <div ref={normalEl}>
+            {list.length > 0 &&
+              list
+                .slice()
+                .reverse()
+                .map((item) => (
+                  <div key={item[itemKey as keyof T] as unknown as string}>
+                    {renderItem(item)}
+                  </div>
+                ))}
+          </div>
         </div>
       )}
     </>
