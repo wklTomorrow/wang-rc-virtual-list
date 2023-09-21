@@ -112,7 +112,7 @@ function VirtualList<T>({
   useScrollToTop(containerEl.current as HTMLDivElement, scrollToTop)
 
   return (
-    <div className='wrap-virtual'>
+    <div className='wrap-virtual' style={{ height }}>
       <div
         ref={containerEl}
         className='virtual-container'

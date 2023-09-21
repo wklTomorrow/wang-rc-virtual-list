@@ -189,7 +189,7 @@ function RevertAutoSizeVirtualList<T>({
   }
 
   return (
-    <div className='wrap-virtual' ref={wrapEl}>
+    <div className='wrap-virtual' ref={wrapEl} style={{ height }}>
       <div
         style={{
           visibility: showBar ? 'visible' : 'hidden'

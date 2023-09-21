@@ -42,7 +42,7 @@ function WrapRevertAutoSizeVirtualList<T>(
       {virtual ? (
         <RevertAutoSizeVirtualList {...props} />
       ) : (
-        <div className="normal-list" ref={wrapEl}>
+        <div className="normal-list" ref={wrapEl} style={{ height }}>
           <div ref={normalEl}>
             {list.length > 0 &&
               list
