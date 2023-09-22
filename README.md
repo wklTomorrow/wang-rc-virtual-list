@@ -1,6 +1,6 @@
 ## react-auto-list
 
-- vue can use this
+[vue-auto-list](https://www.npmjs.com/package/wang-vue-virtual-list)
 
 ![demo](./assets/demo.gif)
 
