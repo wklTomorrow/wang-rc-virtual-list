@@ -5,12 +5,18 @@ import external from "rollup-plugin-peer-deps-external";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
+import pkg from "./package.json";
 
 export default {
   input: "src/index.ts",
   output: [
     {
-      file: "dist/index.js",
+      file: pkg.main,
+      format: "cjs", // CommonJS (适用于 require 等)
+      exports: "named",
+    },
+    {
+      file: pkg.module,
       format: "esm",
     },
   ],
