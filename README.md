@@ -105,4 +105,19 @@ import {RevertAutoSizeVirtualList} from '.'
 )}
 ```
 
+## APIS
+
+| Prop           | Description                 | Type                   | Default |
+| -------------- | --------------------------- | ---------------------- | ------- |
+| list           | Data list                   | Array<T>               | -       |
+| height         | list height                 | number                 | 400     |
+| itemHeight     | list item height            | number                 | 40      |
+| minSize        | show cnt                    | number                 | 20      |
+| itemKey        | react keys                  | key in T               | -       |
+| scrollToTop    | go to top                   | number                 | 0       |
+| scrollToBottom | scrolled to bottom          | (e) => void            | -       |
+| renderFooter   | render footer( not revert ) | ReactNode              | -       |
+| renderHeader   | render header               | ReactNode              | -       |
+| renderItem     | render item                 | (item: T) => ReactNode | -       |
+
 you can see example demo
