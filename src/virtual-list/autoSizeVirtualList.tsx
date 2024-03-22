@@ -32,6 +32,7 @@ function AutoSizeVirtualList<T>({
   renderHeader?: ReactNode;
 } & AutoVirtualItemType<T>) {
   const cache = useRef<Array<AutoSizeVirtualItemType>>([]);
+  const cacheSize = useRef<number>(-1);
   const listEl = useRef<HTMLDivElement>(null);
   const innerEl = useRef<HTMLDivElement>(null);
   const bgEl = useRef<HTMLDivElement>(null);
@@ -64,6 +65,9 @@ function AutoSizeVirtualList<T>({
         key={item[itemKey as keyof T] as unknown as string}
         className={"list-item"}
         data-index={cache.index}
+        style={{
+          minHeight: cache.height,
+        }}
       >
         {renderItemCom(item)}
       </div>
@@ -79,6 +83,13 @@ function AutoSizeVirtualList<T>({
       const lastIndex = +(listItems[listItems.length - 1].getAttribute(
         "data-index"
       ) as string);
+      const firstIndex = +(listItems[0].getAttribute("data-index") as string);
+      if (
+        cache.current[lastIndex].bottom - cache.current[firstIndex].top >
+        innerEl.current.offsetHeight
+      ) {
+        return;
+      }
       [...listItems].forEach((listItem) => {
         const rectBox = listItem.getBoundingClientRect();
         const index = +(listItem.getAttribute("data-index") as string);
@@ -109,7 +120,8 @@ function AutoSizeVirtualList<T>({
   };
 
   useEffect(() => {
-    if (size) {
+    if (size && cacheSize.current < size) {
+      cacheSize.current = size;
       updateCells();
     }
   }, [size, JSON.stringify(cache)]);
