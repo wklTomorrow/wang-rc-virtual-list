@@ -66,7 +66,7 @@ function AutoSizeVirtualList<T>({
         className={"list-item"}
         data-index={cache.index}
         style={{
-          minHeight: itemHeight,
+          minHeight: cache.height || itemHeight,
         }}
       >
         {renderItemCom(item)}

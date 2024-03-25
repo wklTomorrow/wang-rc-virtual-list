@@ -85,13 +85,13 @@ function RevertAutoSizeVirtualList<T>({
       const lastIndex = +(listItems[listItems.length - 1].getAttribute(
         "data-index"
       ) as string);
-      const firstIndex = +(listItems[0].getAttribute("data-index") as string);
-      if (
-        cache.current[lastIndex].bottom - cache.current[firstIndex].top >
-        innerEl.current.offsetHeight
-      ) {
-        return;
-      }
+      // const firstIndex = +(listItems[0].getAttribute("data-index") as string);
+      // if (
+      //   cache.current[lastIndex].bottom - cache.current[firstIndex].top >
+      //   innerEl.current.offsetHeight
+      // ) {
+      //   return;
+      // }
       [...listItems].forEach((listItem) => {
         const rectBox = listItem.getBoundingClientRect();
         const index = +(listItem.getAttribute("data-index") as string);
