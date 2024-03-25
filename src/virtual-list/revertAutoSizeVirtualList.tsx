@@ -23,6 +23,7 @@ function RevertAutoSizeVirtualList<T>({
   scrollToTop = 0,
   renderItem: renderItemCom,
   renderFooter,
+  itemHeight,
   handleScroll,
   scrollToBottom,
 }: {
@@ -67,7 +68,7 @@ function RevertAutoSizeVirtualList<T>({
         className={"list-item"}
         data-index={cache.index}
         style={{
-          minHeight: cache.height,
+          minHeight: cache.height || itemHeight,
         }}
       >
         {renderItemCom(item)}
@@ -266,7 +267,12 @@ function RevertAutoSizeVirtualList<T>({
           renderItem();
         })}
       >
-        <div>
+        <div
+          style={{
+            position: "relative",
+            transform: "translateY(-100%)",
+          }}
+        >
           <div className="virtual-bg" ref={bgEl}></div>
           {renderBottom()}
         </div>
