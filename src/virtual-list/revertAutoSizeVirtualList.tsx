@@ -68,7 +68,7 @@ function RevertAutoSizeVirtualList<T>({
         className={"list-item"}
         data-index={cache.index}
         style={{
-          minHeight: cache.height || itemHeight,
+          minHeight: itemHeight,
         }}
       >
         {renderItemCom(item)}
