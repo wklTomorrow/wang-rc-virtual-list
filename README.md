@@ -4,6 +4,10 @@
 
 ![demo](./assets/demo.gif)
 
+---
+
+![IM](./assets/output.gif)
+
 ## fixed height
 
 ![fixed height](./assets/normalList.png)
@@ -120,4 +124,4 @@ import {RevertAutoSizeVirtualList} from '.'
 | renderHeader   | render header               | ReactNode              | -       |
 | renderItem     | render item                 | (item: T) => ReactNode | -       |
 
-you can see example demo
+可以把 git 代码拉取下来，运行 demo 查看更多配置
