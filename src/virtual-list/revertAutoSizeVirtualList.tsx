@@ -31,7 +31,7 @@ function RevertAutoSizeVirtualList<T>({
 } & AutoVirtualItemType<T>) {
   const cache = useRef<Array<AutoSizeVirtualItemType>>([]);
   const wrapEl = useRef<HTMLDivElement>(null);
-  const containerEl = useRef<HTMLDivElement>(null);
+  // const containerEl = useRef<HTMLDivElement>(null);
   const bgEl = useRef<HTMLDivElement>(null);
   const contentEl = useRef<HTMLDivElement>(null);
   const innerEl = useRef<HTMLDivElement>(null);
@@ -42,16 +42,16 @@ function RevertAutoSizeVirtualList<T>({
   const [style, setStyle] = useState<CSSProperties>({});
 
   const size = useResizeObserver(innerEl.current as HTMLElement);
-  useScrollToTop(containerEl.current as HTMLDivElement, scrollToTop);
-  const { showBar, handleShowBar, handleMouseDown } = useBar(
-    barEl.current as HTMLDivElement,
-    containerEl.current as HTMLDivElement,
-    true
-  );
-  useWheelOrTouch(
-    wrapEl.current as HTMLDivElement,
-    containerEl.current as HTMLDivElement
-  );
+  useScrollToTop(contentEl.current as HTMLDivElement, scrollToTop);
+  // const { showBar, handleShowBar, handleMouseDown } = useBar(
+  //   barEl.current as HTMLDivElement,
+  //   containerEl.current as HTMLDivElement,
+  //   true
+  // );
+  // useWheelOrTouch(
+  //   wrapEl.current as HTMLDivElement,
+  //   containerEl.current as HTMLDivElement
+  // );
 
   const viewCount = Math.min(Math.floor(height / minSize), list.length);
 
@@ -113,13 +113,13 @@ function RevertAutoSizeVirtualList<T>({
         });
       }
       if (bgEl.current && contentEl.current) {
-        bgEl.current.setAttribute(
-          "style",
-          `height: ${
-            cache.current[cache.current.length - 1].bottom -
-            contentEl.current.offsetHeight
-          }px;`
-        );
+        // bgEl.current.setAttribute(
+        //   "style",
+        //   `height: ${
+        //     cache.current[cache.current.length - 1].bottom -
+        //     contentEl.current.offsetHeight
+        //   }px;`
+        // );
       }
     }
   };
@@ -136,18 +136,19 @@ function RevertAutoSizeVirtualList<T>({
     scrollEnd?: fn;
   }) {
     if (
-      containerEl.current &&
+      // containerEl.current &&
       contentEl.current &&
       bgEl.current &&
       itemList.length
     ) {
-      const { scrollTop, offsetHeight, clientHeight } = containerEl.current;
+      const { scrollTop, offsetHeight, clientHeight } = contentEl.current;
       renderScrollBar({
-        allHeight: bgEl.current?.offsetHeight + contentEl.current.offsetHeight,
+        allHeight: bgEl.current?.offsetHeight,
+        // allHeight: bgEl.current?.offsetHeight + contentEl.current.offsetHeight,
         height: offsetHeight,
         top: scrollTop,
       });
-      const startIndex = findStartByIndex(cache.current, scrollTop);
+      const startIndex = findStartByIndex(cache.current, -scrollTop);
       const endIndex = startIndex + viewCount;
       const startBufferIndex = Math.max(0, startIndex - offset);
       const endBufferIndex = Math.min(itemList.length - 1, endIndex + offset);
@@ -163,10 +164,10 @@ function RevertAutoSizeVirtualList<T>({
 
       updateCells();
       const bottom = cache.current[cache.current.length - 1]?.bottom;
-      if (containerEl.current && bottom) {
-        const { scrollHeight } = containerEl.current;
+      if (contentEl.current && bottom) {
+        const { scrollHeight } = contentEl.current;
         if (
-          scrollHeight <= scrollTop + clientHeight &&
+          scrollHeight <= -scrollTop + clientHeight &&
           scrollHeight >= bottom
         ) {
           scrollEnd?.();
@@ -177,8 +178,7 @@ function RevertAutoSizeVirtualList<T>({
         `height: ${bottom - contentEl.current.offsetHeight}px;`
       );
       rendered(renderItems, {
-        bottom: -scrollTop,
-        transform: `translateY(-${cache.current[startBufferIndex].top}px)`,
+        transform: `translate3d(0, -${cache.current[startBufferIndex].top}px, 0px)`,
       });
     }
   }
@@ -200,8 +200,9 @@ function RevertAutoSizeVirtualList<T>({
       autoSizeVirtualList({
         itemList: list,
         rendered: (list, style) => {
-          setRenderItem(list);
           setStyle(style);
+
+          setRenderItem(list);
         },
         renderScrollBar: ({
           allHeight,
@@ -212,14 +213,14 @@ function RevertAutoSizeVirtualList<T>({
           height: number;
           top: number;
         }) => {
-          const target = (height * height) / allHeight;
-          const bottom = (height * top) / allHeight;
-          if (barEl.current) {
-            barEl.current.setAttribute(
-              "style",
-              `height: ${target}px;bottom: ${bottom}px;`
-            );
-          }
+          // const target = (height * height) / allHeight;
+          // const bottom = (height * top) / allHeight;
+          // if (barEl.current) {
+          //   barEl.current.setAttribute(
+          //     "style",
+          //     `height: ${target}px;bottom: ${bottom}px;`
+          //   );
+          // }
         },
         scrollEnd: () => {
           scrollToBottom?.();
@@ -249,37 +250,32 @@ function RevertAutoSizeVirtualList<T>({
     <div className="wrap-virtual" ref={wrapEl} style={{ height }}>
       <div
         style={{
-          visibility: showBar ? "visible" : "hidden",
+          height: "100%",
         }}
       >
         <div
-          className="virtual-bar"
-          ref={barEl}
-          onMouseDown={handleMouseDown}
-        ></div>
-      </div>
-      <div
-        className="virtual-container"
-        ref={containerEl}
-        onScroll={throttle((e) => {
-          handleScroll?.(e);
-          handleShowBar();
-          renderItem();
-        })}
-      >
-        <div
-          style={{
-            position: "relative",
-            transform: "translateY(-100%)",
-          }}
+          className="virtual-content"
+          onScroll={throttle((e) => {
+            handleScroll?.(e);
+            renderItem();
+          })}
+          ref={contentEl}
         >
-          <div className="virtual-bg" ref={bgEl}></div>
-          {renderBottom()}
-        </div>
-        <div className="virtual-content" ref={contentEl}>
           <div className="virtual-inner" ref={innerEl} style={{ ...style }}>
             {renderedItem}
             {renderBottom()}
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: 10,
+              zIndex: -1,
+            }}
+          >
+            <div className="virtual-bg" ref={bgEl}>
+              {renderBottom()}
+            </div>
           </div>
         </div>
       </div>

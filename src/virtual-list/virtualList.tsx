@@ -1,13 +1,13 @@
 /**
  * 固定高度
  */
-import React, { useEffect, useMemo, useRef, useState, ReactNode } from 'react'
-import { fn, AutoVirtualItemType } from './type'
-import './modules/virtualList.less'
-import { throttle } from './utils'
-import { useBar } from './hooks/useBar'
-import { useDeepEffect } from './hooks/useDeepEffect'
-import { useScrollToTop } from './hooks/useScrollToTop'
+import React, { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { fn, AutoVirtualItemType } from "./type";
+import "./modules/virtualList.less";
+import { throttle } from "./utils";
+import { useBar } from "./hooks/useBar";
+import { useDeepEffect } from "./hooks/useDeepEffect";
+import { useScrollToTop } from "./hooks/useScrollToTop";
 
 function VirtualList<T>({
   height = 400,
@@ -16,56 +16,59 @@ function VirtualList<T>({
   offset = 6,
   list = [],
   scrollToTop = 0,
-  itemKey = '',
+  itemKey = "",
   renderHeader,
   renderFooter,
   renderItem,
   scrollToBottom,
-  handleScroll
+  handleScroll,
 }: {
-  list: Array<T>
-  renderHeader?: ReactNode
+  list: Array<T>;
+  renderHeader?: ReactNode;
 } & AutoVirtualItemType<T>) {
-  const containerEl = useRef<HTMLDivElement>(null)
-  const bgEl = useRef<HTMLDivElement>(null)
-  const barEl = useRef<HTMLDivElement>(null)
-  const scrollEl = useRef<HTMLDivElement>(null)
-  const headerEl = useRef<HTMLDivElement>(null)
-  const [showList, setList] = useState<Array<T>>([])
-  const [startIndex, setStart] = useState<number>(0)
-  const [headerHeight, setHeaderHeight] = useState<number>(0)
+  const containerEl = useRef<HTMLDivElement>(null);
+  const bgEl = useRef<HTMLDivElement>(null);
+  const barEl = useRef<HTMLDivElement>(null);
+  const scrollEl = useRef<HTMLDivElement>(null);
+  const headerEl = useRef<HTMLDivElement>(null);
+  const [showList, setList] = useState<Array<T>>([]);
+  const [startIndex, setStart] = useState<number>(0);
+  const [headerHeight, setHeaderHeight] = useState<number>(0);
 
-  const viewCnt = Math.min(Math.floor(height / minSize), list.length)
+  const viewCnt = Math.min(Math.floor(height / minSize), list.length);
 
   function dealVirtualList({
     itemList,
     rendered,
     renderScrollBar,
-    scrollEnd
+    scrollEnd,
   }: {
-    itemList: Array<T>
-    rendered: fn
-    renderScrollBar: fn
-    scrollEnd?: fn
+    itemList: Array<T>;
+    rendered: fn;
+    renderScrollBar: fn;
+    scrollEnd?: fn;
   }) {
     if (containerEl.current && itemList.length) {
-      const { scrollTop, offsetHeight, clientHeight } = containerEl.current
+      const { scrollTop, offsetHeight, clientHeight } = containerEl.current;
       renderScrollBar({
         allHeight: scrollEl.current?.offsetHeight,
         height: offsetHeight,
-        top: scrollTop
-      })
-      if ((scrollEl.current?.clientHeight as number) <= scrollTop + clientHeight) {
-        scrollEnd?.()
+        top: scrollTop,
+      });
+      if (
+        (scrollEl.current?.clientHeight as number) <=
+        scrollTop + clientHeight
+      ) {
+        scrollEnd?.();
       }
-      const newStartIndex = Math.floor(scrollTop / itemHeight)
-      const startIndex = Math.max(0, newStartIndex - offset)
-      const endIndex = Math.min(itemList.length, startIndex + viewCnt)
-      const renderList = []
+      const newStartIndex = Math.floor(scrollTop / itemHeight);
+      const startIndex = Math.max(0, newStartIndex - offset);
+      const endIndex = Math.min(itemList.length, startIndex + viewCnt);
+      const renderList = [];
       for (let i = startIndex; i < endIndex; i++) {
-        renderList.push(itemList[i])
+        renderList.push(itemList[i]);
       }
-      rendered(renderList, startIndex)
+      rendered(renderList, startIndex);
     }
   }
 
@@ -74,52 +77,66 @@ function VirtualList<T>({
       dealVirtualList({
         itemList: list,
         rendered: (list, index) => {
-          setList(list)
-          setStart(index)
+          setList(list);
+          setStart(index);
         },
-        renderScrollBar: ({ allHeight, height, top }: { allHeight: number; height: number; top: number }) => {
-          const target = (height * height) / allHeight
-          const scrollTop = (height * top) / allHeight
+        renderScrollBar: ({
+          allHeight,
+          height,
+          top,
+        }: {
+          allHeight: number;
+          height: number;
+          top: number;
+        }) => {
+          const target = (height * height) / allHeight;
+          const scrollTop = (height * top) / allHeight;
           if (barEl.current) {
-            barEl.current.setAttribute('style', `height: ${target}px;top: ${scrollTop}px;`)
+            barEl.current.setAttribute(
+              "style",
+              `height: ${target}px;top: ${scrollTop}px;`
+            );
           }
         },
         scrollEnd: () => {
-          scrollToBottom?.()
-        }
-      })
-    }
-  }, [JSON.stringify(list)])
+          scrollToBottom?.();
+        },
+      });
+    };
+  }, [JSON.stringify(list)]);
 
   useDeepEffect(() => {
     if (list.length) {
-      bgEl?.current?.setAttribute('style', `height: ${list.length * itemHeight}px;`)
+      bgEl?.current?.setAttribute(
+        "style",
+        `height: ${list.length * itemHeight}px;`
+      );
     }
-    render()
-  }, [list])
+    render();
+  }, [list]);
 
   const { showBar, handleShowBar, handleMouseDown } = useBar(
     barEl.current as HTMLDivElement,
     containerEl.current as HTMLDivElement
-  )
+  );
 
   useEffect(() => {
     if (headerEl.current) {
-      setHeaderHeight(headerEl.current.clientHeight)
+      setHeaderHeight(headerEl.current.clientHeight);
     }
-  }, [])
+  }, []);
 
-  useScrollToTop(containerEl.current as HTMLDivElement, scrollToTop)
+  useScrollToTop(containerEl.current as HTMLDivElement, scrollToTop);
 
   return (
-    <div className='wrap-virtual' style={{ height }}>
+    <div className="wrap-virtual" style={{ height }}>
       <div
         ref={containerEl}
-        className='virtual-container'
-        onScroll={throttle(e => {
-          handleShowBar()
-          handleScroll?.(e)
-          render()
+        className="virtual-container"
+        onScroll={throttle((e) => {
+          handleShowBar();
+          handleScroll?.(e);
+          render();
         })}
       >
         <div ref={scrollEl}>
@@ -129,13 +146,18 @@ function VirtualList<T>({
         </div>
         {showList.length > 0 && (
           <div
-            className='virtual-container_content'
+            className="virtual-container_content"
             style={{
-              transform: `translateY(${startIndex * itemHeight + headerHeight}px)`
+              transform: `translate3d(0, ${
+                startIndex * itemHeight + headerHeight
+              }px, 0)`,
             }}
           >
             {showList.map((item: T) => (
-              <div key={item[itemKey as keyof T] as unknown as string} className='list-item'>
+              <div
+                key={item[itemKey as keyof T] as unknown as string}
+                className="list-item"
+              >
                 {renderItem(item)}
               </div>
             ))}
@@ -144,13 +166,17 @@ function VirtualList<T>({
       </div>
       <div
         style={{
-          visibility: showBar ? 'visible' : 'hidden'
+          visibility: showBar ? "visible" : "hidden",
         }}
       >
-        <div ref={barEl} className='wrap-virtual_bar' onMouseDown={handleMouseDown}></div>
+        <div
+          ref={barEl}
+          className="wrap-virtual_bar"
+          onMouseDown={handleMouseDown}
+        ></div>
       </div>
     </div>
-  )
+  );
 }
 
-export default VirtualList
+export default VirtualList;

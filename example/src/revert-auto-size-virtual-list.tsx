@@ -35,18 +35,20 @@ const SimpleDemo = () => {
   };
   useEffect(() => {
     const items = Array.from({ length: 100 }).map((item, i) => {
-      if (i % 10 === 0) {
+      if (i % 10 === 1) {
         return {
           name: `item ${i}`,
           id: Math.random(),
           height: randomIncludes(40, 120),
-          img: "https://cos.ap-shanghai.myqcloud.com/2d6e-shanghai-007-sharedv4-05-1303031839/ae04-1600010225/a29f-BqD5cL_3664627/d8839405f55f85b2076e9513b5aaa01d-258679.png",
+           img: 'https://conan-test.fbcontent.cn/conan-xross-resource/izq1emtm3wgh6p2/rcnzxc8a5i2em7a.png'
+          
         };
       }
       return {
         name: `item ${i}`,
         id: Math.random(),
         height: randomIncludes(40, 120),
+       
       };
     });
     setList1(items);
@@ -77,7 +79,7 @@ const SimpleDemo = () => {
 
   return (
     <Row gutter={16}>
-      <Col span={12}>
+      <Col span={24}>
         <Card
           title={"基本使用"}
           style={{
@@ -106,6 +108,7 @@ const SimpleDemo = () => {
                 height={400}
                 itemHeight={40}
                 itemKey={"id"}
+                minSize={50}
                 scrollToTop={scrollToTop1}
                 renderFooter={<>hello world</>}
                 renderItem={({ name, height, img }: ItemType) => (
@@ -133,6 +136,16 @@ const SimpleDemo = () => {
                     ) : (
                       <>{name}</>
                     )}
+                    {/* <div
+                    style={{
+                      outline: "1px solid red",
+                      outlineOffset: -2,
+                      height: height,
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    {name}
+                  </div> */}
                   </div>
                 )}
               />
