@@ -1,5 +1,5 @@
 import { Button, Card, Col, Row } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RevertAutoSizeVirtualList } from "../../src/index";
 
 const randomIncludes = (min: number, max: number) => {
@@ -21,34 +21,39 @@ const SimpleDemo = () => {
   const [scrollToTop2, setScroll2] = useState<number>(0);
   const [scrollToTop4, setScroll4] = useState<number>(0);
 
+  const loading = useRef(false);
+
   const scrollToBottom = () => {
+    if (loading.current) {
+      return;
+    }
+    loading.current = true;
     setTimeout(() => {
-      setList2((old: any) => {
-        const items = Array.from({ length: 100 }).map((item, i) => ({
+      setList1((old: any) => {
+        const items = Array.from({ length: 10 }).map((item, i) => ({
           name: `item ${old.length + i}`,
           id: Math.random(),
           height: randomIncludes(40, 120),
         }));
         return [...old, ...items];
       });
+      loading.current = false;
     }, 2000);
   };
   useEffect(() => {
-    const items = Array.from({ length: 100 }).map((item, i) => {
+    const items = Array.from({ length: 50 }).map((item, i) => {
       if (i % 10 === 1) {
         return {
           name: `item ${i}`,
           id: Math.random(),
           height: randomIncludes(40, 120),
-           img: 'https://conan-test.fbcontent.cn/conan-xross-resource/izq1emtm3wgh6p2/rcnzxc8a5i2em7a.png'
-          
+          img: "https://conan-test.fbcontent.cn/conan-xross-resource/izq1emtm3wgh6p2/rcnzxc8a5i2em7a.png",
         };
       }
       return {
         name: `item ${i}`,
         id: Math.random(),
         height: randomIncludes(40, 120),
-       
       };
     });
     setList1(items);
@@ -108,9 +113,10 @@ const SimpleDemo = () => {
                 height={400}
                 itemHeight={40}
                 itemKey={"id"}
-                minSize={50}
+                minSize={20}
                 scrollToTop={scrollToTop1}
                 renderFooter={<>hello world</>}
+                scrollToBottom={scrollToBottom}
                 renderItem={({ name, height, img }: ItemType) => (
                   <div
                     style={{
@@ -123,6 +129,7 @@ const SimpleDemo = () => {
                       console.log("hello world");
                     }}
                   >
+                    {/* <>{name}</> */}
                     {img ? (
                       <img
                         src={img}
