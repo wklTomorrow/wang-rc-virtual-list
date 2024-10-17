@@ -100,9 +100,10 @@ function AutoSizeVirtualList<T>({
         style={{
           minHeight: itemHeight,
           transform: "rotate(180deg)",
-          height: cacheDom.current[i]
-            ? cacheDom.current[i].height
-            : "max-content",
+          height:
+            cacheDom.current[i] && cacheDom.current[i]?.height !== itemHeight
+              ? cacheDom.current[i].height
+              : "max-content",
         }}
       >
         {renderItemCom(item)}
