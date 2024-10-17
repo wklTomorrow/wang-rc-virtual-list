@@ -40,7 +40,6 @@ function AutoSizeVirtualList<T>({
   const containerEl = useRef<HTMLDivElement>(null);
   const barEl = useRef<HTMLDivElement>(null);
   const headerEl = useRef<HTMLDivElement>(null);
-  const cacheTrans = useRef<any>({});
   const cacheDom = useRef<any>({});
 
   const [renderedItem, setRenderItem] = useState<Array<ReactNode>>([]);
@@ -50,6 +49,8 @@ function AutoSizeVirtualList<T>({
 
   const [addOne, setAddOne] = useState<T | null>(null);
   const timerRef = useRef<any>();
+  const cacheList = useRef<T[]>([]);
+  const loading = useRef(false);
 
   const viewCount = Math.min(Math.floor(height / minSize), list.length);
 
@@ -111,9 +112,6 @@ function AutoSizeVirtualList<T>({
 
   const updateCells = (scroll = false) => {
     if (innerEl.current && cache.current.length) {
-      if (scroll) {
-        return;
-      }
       const listItems = innerEl.current.querySelectorAll(".list-item");
       if (listItems.length === 0) {
         return;
@@ -122,10 +120,8 @@ function AutoSizeVirtualList<T>({
         "data-index"
       ) as string);
       const firstIndex = +(listItems[0].getAttribute("data-index") as string);
-      if (
-        cache.current[lastIndex].bottom - cache.current[firstIndex].top >
-        innerEl.current.offsetHeight
-      ) {
+      const rectBox = listItems[0].getBoundingClientRect();
+      if (cache.current[firstIndex].height === rectBox.height) {
         return;
       }
       [...listItems].forEach((listItem) => {
@@ -208,15 +204,10 @@ function AutoSizeVirtualList<T>({
       if (renderHeader && !headerHeight) {
         header = headerEl.current?.clientHeight as number;
       }
-      let trans = cacheTrans.current[[startIndex, "-", endIndex].join("")];
-      if (!trans) {
-        trans = cacheTrans.current[
-          [startIndex, "-", endIndex].join("")
-        ] = `translate3d(0, ${cache.current[startIndex].top + header}px, 0)`;
-      }
-
       rendered(renderItems, {
-        transform: trans,
+        transform: `translate3d(0, ${
+          cache.current[startIndex].top + header
+        }px, 0)`,
       });
     }
   }
@@ -227,13 +218,13 @@ function AutoSizeVirtualList<T>({
         continue;
       }
       const pre = cache.current[i - 1] ? cache.current[i - 1].bottom : 0;
-      console.log(renderList[i]);
       cache.current.push({
         index: i,
         height: itemHeight,
         top: pre,
         bottom: pre + itemHeight,
-        key: renderList[i][itemKey],
+        // @ts-ignore
+        key: renderList[i][itemKey] as string,
       });
     }
     return () => {
@@ -271,22 +262,24 @@ function AutoSizeVirtualList<T>({
   useDeepEffect(() => {
     if (list.length) {
       if (
-        cache.current.length &&
-        cache.current[0]?.key !== list[0][itemKey] &&
+        cacheList.current.length &&
+        // @ts-ignore
+        cacheList.current[0][itemKey] !== list[0][itemKey] &&
         listEl.current?.scrollTop
       ) {
         setAddOne(list[0]);
       } else {
         setRenderList(list);
       }
+      cacheList.current = [...list];
     }
   }, [list]);
 
   useEffect(() => {
     if (renderList.length) {
-      cacheTrans.current = {};
       cacheDom.current = {};
       renderItem();
+      updateCells();
     }
   }, [renderList.length]);
 
@@ -320,14 +313,15 @@ function AutoSizeVirtualList<T>({
           renderItem();
           handleShowBar();
           const one = addOne;
-          if (!e.target?.scrollTop && one) {
+          if (!e.target?.scrollTop && one && !loading.current) {
+            loading.current = true;
             timerRef.current = setTimeout(() => {
               setRenderList((old) => [one, ...old]);
               clearTimer();
+              setAddOne(null);
+              loading.current = false;
             });
           }
-
-          setAddOne(null);
         })}
       >
         <div ref={containerEl}>
@@ -344,8 +338,13 @@ function AutoSizeVirtualList<T>({
           ref={innerEl}
           style={{ ...style }}
         >
-          {renderedItem.map(({ item, cache, i }) => (
-            <RenderedItemCom item={item} cache={cache} i={i} />
+          {renderedItem.map(({ item, cache, i }: any) => (
+            <RenderedItemCom
+              item={item}
+              cache={cache}
+              i={i}
+              key={item[itemKey as keyof T] as unknown as string}
+            />
           ))}
         </div>
       </div>
