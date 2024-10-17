@@ -121,9 +121,12 @@ function AutoSizeVirtualList<T>({
       ) as string);
       const firstIndex = +(listItems[0].getAttribute("data-index") as string);
       const rectBox = listItems[0].getBoundingClientRect();
-      if (cache.current[firstIndex].height === rectBox.height) {
-        return;
-      }
+      // if (
+      //   cache.current[firstIndex].height === rectBox.height &&
+      //   cache.current?.length !== renderList.length
+      // ) {
+      //   return;
+      // }
       [...listItems].forEach((listItem) => {
         const rectBox = listItem.getBoundingClientRect();
         let index = +(listItem.getAttribute("data-index") as string);
