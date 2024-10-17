@@ -7,6 +7,7 @@ export type AutoSizeVirtualItemType = {
   bottom: number
   height: number
   index: number
+  key?: string | number
 }
 
 export type VirtualItemType = {

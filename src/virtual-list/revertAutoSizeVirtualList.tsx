@@ -40,10 +40,16 @@ function AutoSizeVirtualList<T>({
   const containerEl = useRef<HTMLDivElement>(null);
   const barEl = useRef<HTMLDivElement>(null);
   const headerEl = useRef<HTMLDivElement>(null);
+  const cacheTrans = useRef<any>({});
+  const cacheDom = useRef<any>({});
 
   const [renderedItem, setRenderItem] = useState<Array<ReactNode>>([]);
   const [style, setStyle] = useState<CSSProperties>({});
   const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const [renderList, setRenderList] = useState<T[]>([]);
+
+  const [addOne, setAddOne] = useState<T | null>(null);
+  const timerRef = useRef<any>();
 
   const viewCount = Math.min(Math.floor(height / minSize), list.length);
 
@@ -54,22 +60,48 @@ function AutoSizeVirtualList<T>({
     listEl.current as HTMLDivElement,
     true
   );
+  useMouseWheelReverse({ containerRef: listEl });
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
-  const renderedItemCom = ({
+  const RenderedItemCom = ({
     item,
     cache,
+    i,
   }: {
     item: T;
+    i: number;
     cache: AutoSizeVirtualItemType;
   }) => {
+    const dom = useRef<any>(null);
+    const size = useResizeObserver(dom.current as HTMLDivElement);
+    useEffect(() => {
+      cacheDom.current[i] = {
+        height: dom.current.offsetHeight,
+      };
+    }, []);
+    useEffect(() => {
+      cacheDom.current[i] = {
+        height: dom.current.offsetHeight,
+      };
+    }, [size, i]);
+
     return (
       <div
+        ref={dom}
         key={item[itemKey as keyof T] as unknown as string}
         className={"list-item"}
         data-index={cache.index}
         style={{
-          minHeight: cache.height || itemHeight,
+          minHeight: itemHeight,
           transform: "rotate(180deg)",
+          height: cacheDom.current[i]
+            ? cacheDom.current[i].height
+            : "max-content",
         }}
       >
         {renderItemCom(item)}
@@ -77,8 +109,11 @@ function AutoSizeVirtualList<T>({
     );
   };
 
-  const updateCells = () => {
+  const updateCells = (scroll = false) => {
     if (innerEl.current && cache.current.length) {
+      if (scroll) {
+        return;
+      }
       const listItems = innerEl.current.querySelectorAll(".list-item");
       if (listItems.length === 0) {
         return;
@@ -95,7 +130,7 @@ function AutoSizeVirtualList<T>({
       }
       [...listItems].forEach((listItem) => {
         const rectBox = listItem.getBoundingClientRect();
-        const index = +(listItem.getAttribute("data-index") as string);
+        let index = +(listItem.getAttribute("data-index") as string);
         const prevItem = cache.current[index - 1];
         const top = prevItem ? prevItem.bottom : 0;
         Object.assign(cache.current[index], {
@@ -121,13 +156,6 @@ function AutoSizeVirtualList<T>({
       }
     }
   };
-
-  useEffect(() => {
-    if (size && cacheSize.current < size) {
-      cacheSize.current = size;
-      updateCells();
-    }
-  }, [size, JSON.stringify(cache)]);
 
   function autoSizeVirtualList({
     itemList,
@@ -155,12 +183,11 @@ function AutoSizeVirtualList<T>({
       );
       const renderItems = [];
       for (let i = startIndex; i < endIndex; i++) {
-        renderItems.push(
-          renderedItemCom({
-            item: itemList[i],
-            cache: cache.current[i],
-          })
-        );
+        renderItems.push({
+          item: itemList[i],
+          cache: cache.current[i],
+          i,
+        });
       }
 
       updateCells();
@@ -169,7 +196,7 @@ function AutoSizeVirtualList<T>({
       if (bottom) {
         const { clientHeight: curHeight } =
           containerEl.current as HTMLDivElement;
-        if (curHeight <= scrollTop + clientHeight && curHeight >= bottom) {
+        if (curHeight <= scrollTop + clientHeight + 5 && curHeight >= bottom) {
           scrollEnd?.();
         }
       }
@@ -181,30 +208,37 @@ function AutoSizeVirtualList<T>({
       if (renderHeader && !headerHeight) {
         header = headerEl.current?.clientHeight as number;
       }
+      let trans = cacheTrans.current[[startIndex, "-", endIndex].join("")];
+      if (!trans) {
+        trans = cacheTrans.current[
+          [startIndex, "-", endIndex].join("")
+        ] = `translate3d(0, ${cache.current[startIndex].top + header}px, 0)`;
+      }
+
       rendered(renderItems, {
-        transform: `translate3d(0, ${
-          cache.current[startIndex].top + header
-        }px, 0)`,
+        transform: trans,
       });
     }
   }
 
   const renderItem = useMemo(() => {
-    for (let i = 0; i < list.length; i++) {
+    for (let i = 0; i < renderList.length; i++) {
       if (cache.current[i]) {
         continue;
       }
       const pre = cache.current[i - 1] ? cache.current[i - 1].bottom : 0;
+      console.log(renderList[i]);
       cache.current.push({
         index: i,
         height: itemHeight,
         top: pre,
         bottom: pre + itemHeight,
+        key: renderList[i][itemKey],
       });
     }
     return () => {
       autoSizeVirtualList({
-        itemList: list,
+        itemList: renderList,
         rendered: (item, style) => {
           setRenderItem(item);
           setStyle(style);
@@ -232,27 +266,52 @@ function AutoSizeVirtualList<T>({
         },
       });
     };
-  }, [JSON.stringify(list)]);
+  }, [JSON.stringify(renderList)]);
 
   useDeepEffect(() => {
     if (list.length) {
-      renderItem();
+      if (
+        cache.current.length &&
+        cache.current[0]?.key !== list[0][itemKey] &&
+        listEl.current?.scrollTop
+      ) {
+        setAddOne(list[0]);
+      } else {
+        setRenderList(list);
+      }
     }
   }, [list]);
+
+  useEffect(() => {
+    if (renderList.length) {
+      cacheTrans.current = {};
+      cacheDom.current = {};
+      renderItem();
+    }
+  }, [renderList.length]);
+
+  useEffect(() => {
+    if (size && cacheSize.current < size) {
+      cacheSize.current = size;
+      updateCells();
+    }
+  }, [size, JSON.stringify(cache)]);
 
   useEffect(() => {
     if (headerEl.current) {
       setHeaderHeight(headerEl.current.clientHeight);
     }
+    return () => {
+      clearTimer();
+    };
   }, []);
 
-  useMouseWheelReverse({ containerRef: listEl });
+  const rotate = {
+    transform: "rotate(180deg)",
+  };
 
   return (
-    <div
-      className="auto-virtual"
-      style={{ height, transform: "rotate(180deg)" }}
-    >
+    <div className="auto-virtual" style={{ height, ...rotate }}>
       <div
         className="auto-virtual-list"
         ref={listEl}
@@ -260,19 +319,34 @@ function AutoSizeVirtualList<T>({
           handleScroll?.(e);
           renderItem();
           handleShowBar();
+          const one = addOne;
+          if (!e.target?.scrollTop && one) {
+            timerRef.current = setTimeout(() => {
+              setRenderList((old) => [one, ...old]);
+              clearTimer();
+            });
+          }
+
+          setAddOne(null);
         })}
       >
         <div ref={containerEl}>
-          {!!renderHeader && <div ref={headerEl}>{renderHeader}</div>}
+          {!!renderHeader && (
+            <div ref={headerEl} style={{ ...rotate }}>
+              {renderHeader}
+            </div>
+          )}
           <div ref={bgEl}></div>
-          {!!renderFooter && renderFooter}
+          {!!renderFooter && <div style={{ ...rotate }}>{renderFooter}</div>}
         </div>
         <div
           className="auto-virtual-list_container"
           ref={innerEl}
           style={{ ...style }}
         >
-          {renderedItem}
+          {renderedItem.map(({ item, cache, i }) => (
+            <RenderedItemCom item={item} cache={cache} i={i} />
+          ))}
         </div>
       </div>
       <div
